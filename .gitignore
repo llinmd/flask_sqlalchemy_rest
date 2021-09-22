@@ -121,6 +121,9 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
+# IntelliJ project
+.idea/
+
 # mkdocs documentation
 /site
 
