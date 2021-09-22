@@ -1,9 +1,9 @@
-# Install packages
-'''
+#### Install packages
+```
 $ pip install -r requirements.txt
-'''
+```
 
-# Start the application
-'''
+#### Start the application
+```
 $ python app.py
-'''
+```
