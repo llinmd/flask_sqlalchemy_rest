@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 # Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root!ADMIN#2020@localhost/yellowdog'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:P@ssw0rd!@localhost/yellowdog'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Init db
 db = SQLAlchemy(app)
