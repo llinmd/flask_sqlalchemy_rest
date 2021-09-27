@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from sqlalchemy.orm.exc import NoResultFound
 
 # Init app
 app = Flask(__name__)
@@ -17,11 +18,11 @@ ma = Marshmallow(app)
 class User(db.Model):
     __tablename__ = 'auth_credentials'
 
-    firstname = db.Column(db.String(20))
-    lastname = db.Column(db.String(20))
+    firstname = db.Column(db.String(20), nullable=False)
+    lastname = db.Column(db.String(20), nullable=False)
     username = db.Column(db.String(20), primary_key=True)
-    password = db.Column(db.String(20))
-    email = db.Column(db.String(25))
+    password = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(25), nullable=False, unique=True)
 
     def __init__(self, firstname, lastname, username, password, email):
         self.firstname = firstname
@@ -29,6 +30,9 @@ class User(db.Model):
         self.username = username
         self.password = password
         self.email = email
+
+    def __repr__(self):
+        return '<User %r>' % self.username
 
 # User Schema
 class UserSchema(ma.Schema):
@@ -43,18 +47,20 @@ users_schema = UserSchema(many=True)
 # Create a user
 @app.route('/user', methods=['POST'])
 def add_user():
-    firstname = request.json['firstname']
-    lastname = request.json['lastname']
-    username = request.json['username']
-    password = request.json['password']
-    email = request.json['email']
+    user = User.query.get(request.json['username'])
+    if user is None:
+        firstname = request.json['firstname']
+        lastname = request.json['lastname']
+        username = request.json['username']
+        password = request.json['password']
+        email = request.json['email']
+        user = User(firstname, lastname, username, password, email)
+        db.session.add(user)
+        db.session.commit()
+    else:
+        raise RuntimeError('User already exist')
 
-    new_user = User(firstname, lastname, username, password, email)
-
-    db.session.add(new_user)
-    db.session.commit()
-
-    return user_schema.jsonify(new_user)
+    return user_schema.jsonify(user)
 
 # Get all users
 @app.route('/user', methods=['GET']) 
@@ -66,19 +72,18 @@ def get_users():
 # Get a user
 @app.route('/user/<username>', methods=['GET']) 
 def get_user(username):
-    user = User.query.get(username)
+    user = User.query.get_or_404(username)
     return user_schema.jsonify(user)
 
 # Update a user
 @app.route('/user/<username>', methods=['PUT'])
 def update_user(username):
-    user = User.query.get(username)
-    
+    user = User.query.get_or_404(username)
+
     user.firstname = request.json['firstname']
     user.lastname = request.json['lastname']
     user.password = request.json['password']
     user.email = request.json['email']
-
     db.session.commit()
 
     return user_schema.jsonify(user)
@@ -86,9 +91,10 @@ def update_user(username):
 # Delete a user
 @app.route('/user/<username>', methods=['DELETE']) 
 def delete_user(username):
-    user = User.query.get(username)
+    user = User.query.get_or_404(username)
     db.session.delete(user)
     db.session.commit()
+
     return user_schema.jsonify(user)
  
 # Run Server
