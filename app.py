@@ -1,14 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-import os
 
 # Init app
 app = Flask(__name__)
-basedir = os.path.abspath(os.path.dirname(__file__))
-# Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:P@ssw0rd!@localhost/yellowdog'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Load Config file:
+app.config.from_object("config.DevelopmentConfig")
+
 # Init db
 db = SQLAlchemy(app)
 # Init ma
