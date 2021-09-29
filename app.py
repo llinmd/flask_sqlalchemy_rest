@@ -1,92 +1,101 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-import os
+from sqlalchemy.orm.exc import NoResultFound
 
 # Init app
 app = Flask(__name__)
-basedir = os.path.abspath(os.path.dirname(__file__))
-# Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'db.sqlite')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Load Config file:
+app.config.from_object("config.DevelopmentConfig")
+
 # Init db
 db = SQLAlchemy(app)
 # Init ma
 ma = Marshmallow(app)
 
-# Product Class/Model
-class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True)
-    description = db.Column(db.String(200))
-    price = db.Column(db.Float)
-    qty = db.Column(db.Integer)
+# User Class/Model
+class User(db.Model):
+    __tablename__ = 'auth_credentials'
 
-    def __init__(self, name, description, price, qty):
-        self.name = name
-        self.description = description
-        self.price = price
-        self.qty = qty
+    firstname = db.Column(db.String(20), nullable=False)
+    lastname = db.Column(db.String(20), nullable=False)
+    username = db.Column(db.String(20), primary_key=True)
+    password = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(25), nullable=False, unique=True)
 
-# Product Schema
-class ProductSchema(ma.Schema):
+    def __init__(self, firstname, lastname, username, password, email):
+        self.firstname = firstname
+        self.lastname = lastname
+        self.username = username
+        self.password = password
+        self.email = email
+
+    def __repr__(self):
+        return '<User %r>' % self.username
+
+# User Schema
+class UserSchema(ma.Schema):
     class Meta:
         # fields to expose
-        fields = ('id', 'name', 'description', 'price', 'qty')
+        fields = ('firstname', 'lastname', 'username', 'password', 'email')
 
 # Init schema
-product_schema = ProductSchema()
-products_schema = ProductSchema(many=True)
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
 
-# Create a Product
-@app.route('/product', methods=['POST'])
-def add_product():
-    name = request.json['name']
-    description = request.json['description']
-    price = request.json['price']
-    qty = request.json['qty']
+# Create a user
+@app.route('/user', methods=['POST'])
+def add_user():
+    user = User.query.get(request.json['username'])
+    if user is None:
+        firstname = request.json['firstname']
+        lastname = request.json['lastname']
+        username = request.json['username']
+        password = request.json['password']
+        email = request.json['email']
+        user = User(firstname, lastname, username, password, email)
+        db.session.add(user)
+        db.session.commit()
+    else:
+        raise RuntimeError('User already exist')
 
-    new_product = Product(name, description, price, qty)
+    return user_schema.jsonify(user)
 
-    db.session.add(new_product)
-    db.session.commit()
-
-    return product_schema.jsonify(new_product)
-
-# Get All Products
-@app.route('/product', methods=['GET']) 
-def get_products():
-    all_products = Product.query.all()
-    result = products_schema.dump(all_products)
+# Get all users
+@app.route('/user', methods=['GET']) 
+def get_users():
+    all_users = User.query.all()
+    result = users_schema.dump(all_users)
     return jsonify(result)
 
-# Get Single Product
-@app.route('/product/<id>', methods=['GET']) 
-def get_product(id):
-    product = Product.query.get(id)
-    return product_schema.jsonify(product)
+# Get a user
+@app.route('/user/<username>', methods=['GET']) 
+def get_user(username):
+    user = User.query.get_or_404(username)
+    return user_schema.jsonify(user)
 
-# Update a Product
-@app.route('/product/<id>', methods=['PUT'])
-def update_product(id):
-    product = Product.query.get(id)
-    
-    product.name = request.json['name']
-    product.description = request.json['description']
-    product.price = request.json['price']
-    product.qty = request.json['qty']
+# Update a user
+@app.route('/user/<username>', methods=['PUT'])
+def update_user(username):
+    user = User.query.get_or_404(username)
 
+    user.firstname = request.json['firstname']
+    user.lastname = request.json['lastname']
+    user.password = request.json['password']
+    user.email = request.json['email']
     db.session.commit()
 
-    return product_schema.jsonify(product)
+    return user_schema.jsonify(user)
 
-# Delete a Product
-@app.route('/product/<id>', methods=['DELETE']) 
-def delete_product(id):
-    product = Product.query.get(id)
-    db.session.delete(product)
+# Delete a user
+@app.route('/user/<username>', methods=['DELETE']) 
+def delete_user(username):
+    user = User.query.get_or_404(username)
+    db.session.delete(user)
     db.session.commit()
-    return product_schema.jsonify(product)
+
+    return user_schema.jsonify(user)
  
 # Run Server
 if __name__ == '__main__':
