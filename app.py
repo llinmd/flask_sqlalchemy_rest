@@ -32,7 +32,7 @@ class User(db.Model):
         self.email = email
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return f"{self.firstname} {self.lastname} {self.username} {self.email}"
 
 # User Schema
 class UserSchema(ma.Schema):
@@ -58,7 +58,7 @@ def add_user():
         db.session.add(user)
         db.session.commit()
     else:
-        raise RuntimeError('User already exist')
+        raise Exception('User already exists')
 
     return user_schema.jsonify(user)
 
@@ -100,4 +100,3 @@ def delete_user(username):
 # Run Server
 if __name__ == '__main__':
     app.run(debug=True)
-

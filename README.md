@@ -56,5 +56,24 @@ $ pip freeze > requirements.txt
 $ rm -rf venv
 ```
 
+### Unit test with pytest
+#### When we format the filename like test_*.py, it will be auto-discoverable by pytest.
 
+#### pytest commands
+```
+$ python -m pytest <filename>.py
+$ pytest -s   # option -s, which is shortcut for --capture=no, allows you to see print statements in console
+$ pytest -k
+$ pytest -m <mark>
+$ pytest -m "not <mark>"
+```
+#### See a list of all the marks pytest knows about
+```
+$ pytest --markers
+```
+#### Use the --durations option to include a duration report in your test results
+#### Report the slowest <n> number of tests
+```
+$ pytest --durations=<n>
+```
 
