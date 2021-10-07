@@ -66,6 +66,7 @@ $ pytest -s   # option -s, which is shortcut for --capture=no, allows you to see
 $ pytest -k
 $ pytest -m <mark>
 $ pytest -m "not <mark>"
+$ pytest -v -s -m <mark>
 ```
 #### See a list of all the marks pytest knows about
 ```
