@@ -1,7 +1,7 @@
 import pytest
 import requests, re
 
-@pytest.mark.getusers
+@pytest.mark.getuser
 def test_get_users(supply_url):
     """ test of getting all users """
     response = requests.get(f"{supply_url}/user")
