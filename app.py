@@ -95,7 +95,12 @@ def delete_user(username):
     db.session.commit()
 
     return user_schema.jsonify(user)
- 
+
+# Provide a health check endpoint
+@app.route('/health', methods=['GET'])
+def health_check():
+    return {'message': "healthy"}
+
 # Run Server
 if __name__ == '__main__':
     app.run(debug=True)

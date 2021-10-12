@@ -58,3 +58,9 @@ def test_delete_user(supply_url, testuser4):
     else:
         assert response.status_code == requests.codes.ok
         assert response.json().get('username') == testuser4['username']
+
+@pytest.mark.healthcheck
+def test_health_check(supply_url):
+    """ test of health-check endpoint """
+    response = requests.get(f"{supply_url}/health")
+    assert response.status_code == requests.codes.ok
