@@ -10,6 +10,8 @@ class Config(object):
     DB_USERNAME = "root"
     DB_PASSWORD = "P@ssw0rd!"
     DB_HOST = "localhost"
+    # Needed to connect to a local database from inside a Docker container
+    # DB_HOST = "host.docker.internal"
     DB_PORT = 3306
 
     SQLALCHEMY_DATABASE_URI = '{dialect}+{driver}://{user}:{password}@{host}:{port}/{database}'.format(
